@@ -1,0 +1,602 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Aseo en cama · UT 3 TCB</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=Nunito+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap">
+<style>
+/* Layout: una sola columna centrada (max 880px) con cabecera fija; el mapa corporal se parte en dos columnas en escritorio. */
+:root{
+  --bg:#FBF7F9; --surface:#FFFFFF; --surface-2:#F4E9EF; --fg:#2A1F26; --muted:#6F5F68; --line:#E3D2DA;
+  --accent:#8C2F5A; --accent-ink:#FFFFFF; --accent-soft:#F6DDE8; --deep:#4E1B37;
+  --ok:#1F7A5C; --ok-soft:#DDF2E8; --bad:#B3362F; --bad-soft:#FBE1DE; --warn:#9A6400; --warn-soft:#FFF0C7;
+  --skin:#F1C9A8; --skin-2:#E2AE87; --sheet:#DDEAF2;
+  --font-head:"Outfit","Segoe UI",system-ui,sans-serif; --font-body:"Nunito Sans","Segoe UI",system-ui,sans-serif;
+  --r:14px; --shadow:0 6px 24px rgba(78,27,55,.08);
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#17111A; --surface:#211923; --surface-2:#2C2130; --fg:#F3E9EE; --muted:#B9A6B1; --line:#3E3040;
+  --accent:#E07AA8; --accent-ink:#1B0F17; --accent-soft:#3A2432; --deep:#F2CFE0;
+  --ok:#5CCB9E; --ok-soft:#1E3A30; --bad:#F08A80; --bad-soft:#44221F; --warn:#F0C25A; --warn-soft:#3E3219;
+  --skin:#D9B090; --skin-2:#BE8E6B; --sheet:#2B3A47; --shadow:0 6px 24px rgba(0,0,0,.35); color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#17111A; --surface:#211923; --surface-2:#2C2130; --fg:#F3E9EE; --muted:#B9A6B1; --line:#3E3040;
+  --accent:#E07AA8; --accent-ink:#1B0F17; --accent-soft:#3A2432; --deep:#F2CFE0;
+  --ok:#5CCB9E; --ok-soft:#1E3A30; --bad:#F08A80; --bad-soft:#44221F; --warn:#F0C25A; --warn-soft:#3E3219;
+  --skin:#D9B090; --skin-2:#BE8E6B; --sheet:#2B3A47; --shadow:0 6px 24px rgba(0,0,0,.35); color-scheme:dark }
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:16px;line-height:1.5}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--deep)}
+h1,h2,h3{font-family:var(--font-head);text-wrap:balance;margin:0;line-height:1.15}
+button{font:inherit;cursor:pointer}
+button:focus-visible,[tabindex]:focus-visible,textarea:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:9;background:var(--deep);color:#fff}
+.topbar .in{max-width:880px;margin:0 auto;display:flex;align-items:center;gap:12px;padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.topbar .brand{font-family:var(--font-head);font-weight:600;font-size:15px;letter-spacing:.2px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.topbar .brand small{display:block;font-family:var(--font-body);font-weight:400;font-size:12px;opacity:.75;letter-spacing:.6px;text-transform:uppercase}
+.topbar .score{font-variant-numeric:tabular-nums;background:rgba(255,255,255,.14);padding:4px 10px;border-radius:999px;font-size:13px;white-space:nowrap}
+.btn-ghost{background:transparent;border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:999px;padding:6px 12px;font-size:13px}
+.btn-ghost:hover{background:rgba(255,255,255,.12)}
+
+main{max-width:880px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+.progress{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:18px}
+.progress div{height:6px;border-radius:3px;background:var(--line)}
+.progress div.done{background:var(--accent)}
+.progress div.cur{background:var(--accent);opacity:.45}
+.steplabel{font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:6px}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px;box-shadow:var(--shadow)}
+.card + .card{margin-top:16px}
+.card h2{font-size:24px;margin-bottom:6px}
+.card p.lead{color:var(--muted);margin:0 0 14px}
+.note{background:var(--surface-2);border-radius:10px;padding:12px 14px;font-size:15px}
+.note b{color:var(--accent)}
+
+.btn{background:var(--accent);color:var(--accent-ink);border:0;border-radius:999px;padding:12px 22px;font-weight:700;font-size:16px;box-shadow:0 2px 0 rgba(0,0,0,.08)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.secondary{background:var(--surface-2);color:var(--fg)}
+.actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin-top:18px}
+.actions .left{margin-right:auto}
+
+/* intro */
+.hero{display:grid;grid-template-columns:1.2fr 1fr;gap:20px;align-items:center}
+.hero h1{font-size:34px;color:var(--deep)}
+.hero p{color:var(--muted);font-size:17px;margin:10px 0 0}
+.hero .art{background:var(--surface-2);border-radius:var(--r);padding:10px;min-width:0}
+.hero .art svg{width:100%;height:auto;display:block}
+@media (max-width:640px){.hero{grid-template-columns:1fr}}
+.field{display:flex;flex-direction:column;gap:6px;margin-top:16px;max-width:360px}
+.field label{font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+.field input{font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--fg)}
+.patients{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:16px}
+@media (max-width:700px){.patients{grid-template-columns:1fr}}
+.pcard{text-align:left;background:var(--surface);border:2px solid var(--line);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:8px;color:var(--fg);transition:transform .15s,border-color .15s}
+.pcard:hover{transform:translateY(-2px);border-color:var(--accent)}
+.pcard .lvl{font-size:11px;letter-spacing:1px;text-transform:uppercase;font-weight:700;color:var(--accent)}
+.pcard h3{font-size:19px}
+.pcard p{margin:0;color:var(--muted);font-size:14px}
+.pcard .tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto}
+.tag{font-size:12px;background:var(--accent-soft);color:var(--deep);padding:3px 9px;border-radius:999px;font-weight:600}
+.tag.done{background:var(--ok-soft);color:var(--ok)}
+
+/* brief */
+.brief{display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:start}
+.brief .avatar{width:96px;height:96px;border-radius:50%;background:var(--surface-2);display:grid;place-items:center}
+.brief .avatar svg{width:70px;height:70px}
+@media (max-width:520px){.brief{grid-template-columns:1fr}}
+.brief dl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:12px 0 0;font-size:15px}
+.brief dt{color:var(--muted);font-weight:700}
+.brief dd{margin:0}
+
+/* material */
+.chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;margin-top:14px}
+.chip{display:flex;align-items:center;gap:10px;text-align:left;padding:10px 12px;border:2px solid var(--line);border-radius:12px;background:var(--surface);color:var(--fg);font-size:14.5px;line-height:1.3;min-height:52px}
+.chip .box{width:20px;height:20px;border-radius:6px;border:2px solid var(--muted);flex:none;display:grid;place-items:center;font-size:13px;font-weight:700}
+.chip[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.chip[aria-pressed="true"] .box{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.chip.ok{border-color:var(--ok);background:var(--ok-soft)}
+.chip.bad{border-color:var(--bad);background:var(--bad-soft)}
+.chip.miss{border-style:dashed;border-color:var(--warn)}
+.chip:disabled{cursor:default}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:13px;color:var(--muted);margin-top:12px}
+.legend span::before{content:"";display:inline-block;width:12px;height:12px;border-radius:4px;margin-right:6px;vertical-align:-1px;border:2px solid}
+.legend .l-ok::before{border-color:var(--ok);background:var(--ok-soft)}
+.legend .l-bad::before{border-color:var(--bad);background:var(--bad-soft)}
+.legend .l-miss::before{border-color:var(--warn);border-style:dashed}
+
+/* order */
+.order{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.oitem{display:flex;align-items:center;gap:12px;text-align:left;padding:12px 14px;border:2px solid var(--line);border-radius:12px;background:var(--surface);color:var(--fg);font-size:15px}
+.oitem .n{width:30px;height:30px;border-radius:50%;background:var(--surface-2);display:grid;place-items:center;font-weight:700;flex:none;font-family:var(--font-head);font-size:14px}
+.oitem[data-picked="1"]{border-color:var(--accent);background:var(--accent-soft)}
+.oitem[data-picked="1"] .n{background:var(--accent);color:var(--accent-ink)}
+.oitem.ok{border-color:var(--ok);background:var(--ok-soft)}
+.oitem.bad{border-color:var(--bad);background:var(--bad-soft)}
+.oitem.bad .fix{margin-left:auto;font-size:12px;color:var(--bad);font-weight:700;white-space:nowrap}
+
+/* question */
+.q{margin-top:16px;padding:16px;border-radius:12px;background:var(--surface-2)}
+.q .ev{font-size:12px;letter-spacing:1px;text-transform:uppercase;font-weight:700;color:var(--accent);margin-bottom:6px}
+.q h3{font-size:18px;margin-bottom:10px}
+.q .situ{font-style:italic;color:var(--muted);margin:0 0 10px}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{text-align:left;padding:11px 14px;border:2px solid var(--line);border-radius:12px;background:var(--surface);color:var(--fg);font-size:15px;line-height:1.35;display:flex;gap:10px}
+.opt .k{font-weight:700;color:var(--accent);flex:none}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt:disabled{cursor:default}
+.opt.ok{border-color:var(--ok);background:var(--ok-soft)}
+.opt.bad{border-color:var(--bad);background:var(--bad-soft)}
+.fb{margin-top:12px;padding:12px 14px;border-radius:10px;font-size:15px;display:flex;gap:10px;align-items:flex-start}
+.fb.ok{background:var(--ok-soft);color:var(--fg)}
+.fb.bad{background:var(--bad-soft);color:var(--fg)}
+.fb .ico{font-weight:800;flex:none;font-family:var(--font-head)}
+.fb.ok .ico{color:var(--ok)} .fb.bad .ico{color:var(--bad)}
+
+/* body map */
+.wash{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:720px){.wash{grid-template-columns:1fr}}
+.bodywrap{background:var(--surface-2);border-radius:var(--r);padding:10px;position:relative}
+.bodywrap svg{width:100%;height:auto;display:block;max-width:100%}
+.zone{cursor:pointer}
+.zone path,.zone ellipse,.zone rect,.zone circle{transition:fill .15s}
+.zone:hover .fill{fill:var(--accent-soft)}
+.zone.done .fill{fill:#BFE3D2}
+.zone.bad .fill{fill:#F5B8B2}
+.zone text{font-family:var(--font-body);font-size:11px;font-weight:700;fill:var(--fg);pointer-events:none}
+.zone.done text{fill:#1F5A44}
+.zonelist{display:flex;flex-direction:column;gap:6px;margin-top:12px}
+.zonelist div{display:flex;gap:10px;align-items:center;font-size:14px;padding:6px 10px;border-radius:8px;background:var(--surface)}
+.zonelist .n{width:22px;height:22px;border-radius:50%;background:var(--line);display:grid;place-items:center;font-size:12px;font-weight:700}
+.zonelist .done .n{background:var(--ok);color:#fff}
+.zonelist .done{color:var(--muted);text-decoration:line-through}
+.hint{font-size:14px;color:var(--muted);margin-top:8px}
+.toast{position:fixed;left:50%;bottom:max(20px,env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--bad);color:#fff;padding:10px 16px;border-radius:999px;font-weight:700;box-shadow:var(--shadow);max-width:90vw;text-align:center;z-index:20}
+
+/* registro */
+textarea{width:100%;min-height:150px;font:inherit;font-size:15px;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--fg);resize:vertical}
+.checks{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.checks label{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);font-size:15px}
+.checks input{width:18px;height:18px;margin-top:3px;accent-color:var(--accent)}
+.model{margin-top:14px;padding:14px;border-left:4px solid var(--accent);background:var(--surface-2);border-radius:0 10px 10px 0;font-style:italic;font-size:15px}
+
+/* results */
+.big{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.ring{width:120px;height:120px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--accent) calc(var(--p)*1%),var(--line) 0);flex:none}
+.ring div{width:92px;height:92px;border-radius:50%;background:var(--surface);display:grid;place-items:center;font-family:var(--font-head);font-weight:700;font-size:30px;font-variant-numeric:tabular-nums}
+.ring small{font-size:12px;color:var(--muted);font-weight:400}
+.bars{display:grid;grid-template-columns:auto 1fr auto;gap:8px 12px;align-items:center;margin-top:16px;font-size:15px}
+.bars .b{height:10px;border-radius:5px;background:var(--line);overflow:hidden}
+.bars .b i{display:block;height:100%;background:var(--accent)}
+.bars .v{font-variant-numeric:tabular-nums;color:var(--muted)}
+.review{margin-top:14px;display:flex;flex-direction:column;gap:8px}
+.review div{padding:10px 12px;border-radius:10px;background:var(--bad-soft);font-size:14.5px}
+.review div b{display:block;margin-bottom:2px}
+.summary{margin-top:14px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;background:var(--surface-2);padding:12px;border-radius:10px;white-space:pre-wrap;user-select:all}
+
+/* identificación y códigos */
+.idcard{background:var(--surface-2);border-radius:12px;padding:14px;margin:16px 0 0}
+.idcard form{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.idcard .field{margin:0;flex:1;min-width:220px;max-width:none}
+.idcard.need{outline:3px solid var(--bad);outline-offset:2px}
+.who{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.who b{font-size:17px}
+.btn.small{padding:8px 14px;font-size:14px}
+.code{width:100%;min-height:96px;font:12px/1.4 ui-monospace,Menlo,Consolas,monospace;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--fg);word-break:break-all;resize:vertical;margin-top:10px}
+/* drawer */
+.drawer{position:fixed;inset:0;z-index:30;display:none}
+.drawer.open{display:block}
+.drawer .bg{position:absolute;inset:0;background:rgba(0,0,0,.45)}
+.drawer .panel{position:absolute;top:0;right:0;bottom:0;width:min(440px,100%);background:var(--surface);color:var(--fg);overflow:auto;padding-block:calc(16px + env(safe-area-inset-top,0px)) 32px;padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px));box-shadow:-8px 0 30px rgba(0,0,0,.2)}
+.drawer h2{font-size:20px;margin-bottom:8px}
+.drawer h3{font-size:14px;letter-spacing:1px;text-transform:uppercase;color:var(--accent);margin:18px 0 6px}
+.drawer ol,.drawer ul{margin:0;padding-left:20px;font-size:14.5px}
+.drawer li{margin-bottom:5px}
+.drawer .close{float:right;background:var(--surface-2);border:0;border-radius:999px;width:36px;height:36px;font-size:18px;color:var(--fg)}
+</style>
+</head>
+<body>
+
+<header class="topbar"><div class="in">
+  <div class="brand">Simulador del aseo en cama<small>UT 3 · Técnicas básicas de enfermería</small></div>
+  <div class="score" id="scorepill" hidden>0 pts</div>
+  <button class="btn-ghost" id="btnproto" type="button">Protocolo</button>
+</div></header>
+
+<main id="app"></main>
+
+<div class="drawer" id="drawer" aria-hidden="true">
+  <div class="bg" data-close></div>
+  <aside class="panel" role="dialog" aria-label="Protocolo de aseo del paciente encamado">
+    <button class="close" type="button" data-close aria-label="Cerrar">×</button>
+    <h2>Protocolo: aseo del paciente encamado</h2>
+    <h3>Normas generales</h3>
+    <ul>
+      <li>Habitación a 22-24 ºC, sin corrientes de aire. Agua caliente, por debajo de 38 ºC: compruébala siempre.</li>
+      <li>Preservar la intimidad: biombo y no dejar al paciente totalmente desnudo.</li>
+      <li>Jabones que no irriten la piel. Enjabonar, aclarar y secar. No mojar la cama.</li>
+      <li>Cuidar vías, sondas y drenajes. Favorecer la colaboración del paciente.</li>
+    </ul>
+    <h3>Preparación</h3>
+    <ol>
+      <li>Preparar el material y el agua a la temperatura adecuada.</li>
+      <li>Lavarse las manos y explicar el procedimiento, pidiendo colaboración.</li>
+      <li>Llevar el material junto a la cama, ponerse los guantes, comprobar la temperatura de la habitación y colocar el biombo.</li>
+      <li>Ofrecer la cuña o la botella. Sustituir la ropa de cama superior por una manta de baño.</li>
+      <li>Frenar la cama, ponerla horizontal y elevarla a la altura de las caderas del TCAE.</li>
+      <li>Ayudar a desnudarse y cubrir al paciente con una sábana o toalla.</li>
+      <li>Introducir la ropa sucia en la bolsa, sin movimientos bruscos.</li>
+    </ol>
+    <h3>Orden del lavado (de lo más limpio a lo más sucio)</h3>
+    <ol start="8">
+      <li>Afeitado y cabello (si procede).</li>
+      <li>Ojos: gasa con suero, del ángulo interno al externo, una gasa por ojo.</li>
+      <li>Cara y orejas (orejas con gasa; nunca bastoncillos dentro del oído).</li>
+      <li>Cuello y hombros.</li>
+      <li>Miembros superiores: axilas, brazos y manos.</li>
+      <li>Tórax y mamas: secar bien los pliegues.</li>
+      <li>Abdomen, sin olvidar el ombligo.</li>
+      <li>Miembros inferiores (decúbito supino): muslos, piernas y pies.</li>
+      <li>Espalda y nalgas (decúbito lateral).</li>
+      <li>Zona genital, de delante hacia atrás. Cambiar el agua siempre que sea necesario.</li>
+    </ol>
+    <h3>Finalización</h3>
+    <ol start="18">
+      <li>Loción hidratante y masaje suave en zonas de presión, salvo si hay signos de úlcera por presión.</li>
+      <li>Cambiar la ropa de cama inferior (cama ocupada).</li>
+      <li>Vestir al paciente. Con perfusión IV: para poner, primero el suero y el brazo de la vía; para quitar, primero el brazo libre.</li>
+      <li>Higiene de boca y pelo; revisar las uñas.</li>
+      <li>Acomodar al paciente, timbre a su alcance; valorar colchón antiescaras si procede.</li>
+      <li>Recoger el material, quitarse los guantes, lavarse las manos y anotar las incidencias.</li>
+    </ol>
+  </aside>
+</div>
+
+<script>
+'use strict';
+/* ---------- datos ---------- */
+const ZONES=[
+  {id:'ojos',n:'Ojos'},{id:'cara',n:'Cara y orejas'},{id:'cuello',n:'Cuello y hombros'},{id:'brazos',n:'Brazos, axilas y manos'},
+  {id:'torax',n:'Tórax'},{id:'abdomen',n:'Abdomen'},{id:'piernas',n:'Piernas y pies'},{id:'espalda',n:'Espalda y nalgas'},{id:'genital',n:'Zona genital'}
+];
+const MAT_OK=['Jabón líquido neutro','Esponjas desechables o manopla','Dos palanganas','Toallas grandes o manta de baño','Toallas pequeñas','Ropa de cama limpia','Pijama o camisón limpio','Guantes desechables','Bata','Bolsa para la ropa sucia','Biombo','Equipo de aseo bucal','Peine o cepillo','Tijeras de punta roma','Gasas estériles y suero fisiológico','Loción hidratante','Cuña y botella','Colonia (si el paciente lo desea)'];
+const MAT_BAD=[
+  ['Alcohol de 96º para friccionar la piel','El alcohol reseca e irrita la piel. Se hidrata con loción, no con alcohol.'],
+  ['Bastoncillos de algodón para los oídos','Nunca se introducen bastoncillos en el oído: riesgo de tapones y de perforar el tímpano.'],
+  ['Tijeras de punta afilada','Las tijeras han de ser de punta roma para no lesionar al paciente.'],
+  ['Esponja compartida con otros pacientes','El material de aseo es personal y, si es posible, desechable: evita transmitir infecciones.'],
+  ['Jabón perfumado de pH alcalino','Hay que usar jabones suaves que respeten el manto hidrolipídico (pH ≈ 5,5).'],
+  ['Agua a 42 ºC «para que no se enfríe»','El agua del aseo en cama debe estar por debajo de 38 ºC. Más caliente puede quemar.']
+];
+const PREP_ORDER=[
+  'Lavarse las manos y explicar el procedimiento al paciente, pidiendo su colaboración.',
+  'Llevar el material junto a la cama, ponerse los guantes y colocar el biombo.',
+  'Ofrecer la cuña o la botella.',
+  'Sustituir la ropa de cama superior por una manta de baño.',
+  'Frenar la cama, ponerla horizontal y elevarla a la altura de las caderas.',
+  'Ayudar al paciente a desnudarse y cubrirlo con una sábana o toalla.'
+];
+const Q_TEMP=[
+  {id:'troom',q:'¿A qué temperatura debe estar la habitación?',opts:[['18 ºC, fresca para que no sude',0,'Demasiado fría: el paciente desnudo y mojado perdería calor.'],['22-24 ºC',1,'Correcto. Es la temperatura recomendada para el aseo.'],['28 ºC, bien caliente',0,'Demasiado calurosa e incómoda; la referencia es 22-24 ºC.']]},
+  {id:'twater',q:'Preparas las dos palanganas. ¿A qué temperatura pones el agua?',opts:[['Unos 30 ºC',0,'Está fría para un aseo: el paciente pasaría frío y el jabón se elimina peor.'],['Unos 37 ºC, siempre por debajo de 38 ºC',1,'Correcto. Agua caliente pero por debajo de 38 ºC, y compruébala antes de empezar.'],['Unos 42 ºC',0,'Puede producir quemaduras, sobre todo en piel frágil o con sensibilidad disminuida.']]}
+];
+// preguntas comunes por zona
+const ZQ={
+  ojos:{q:'¿Cómo limpias los ojos?',opts:[['Con una gasa empapada en suero fisiológico, del ángulo interno al externo, y una gasa distinta para cada ojo',1,'Correcto. Del lagrimal hacia fuera y sin reutilizar la gasa.'],['Con la esponja enjabonada, de fuera hacia dentro',0,'El jabón irrita el ojo y arrastrarías la suciedad hacia el lagrimal. Se usa gasa con suero, del ángulo interno al externo.'],['Con un bastoncillo de algodón seco',0,'El algodón seco deja fibras y puede lesionar. Gasa con suero, del ángulo interno al externo.']]},
+  cara:{q:'¿Y las orejas?',opts:[['Limpio el pabellón auricular con una gasa; nunca introduzco bastoncillos en el conducto',1,'Correcto. Los bastoncillos empujan la cera y pueden perforar el tímpano.'],['Uso un bastoncillo para sacar bien la cera del conducto',0,'Nunca dentro del conducto: empuja la cera, forma tapones y puede perforar el tímpano.'],['Las orejas no se lavan en el aseo en cama',0,'Sí se lavan: forman parte del aseo de la cara, con gasas.']]},
+  brazos:{ev:'Imprevisto',situ:'Tras lavar las axilas y los brazos, el agua de la palangana está turbia y jabonosa.',q:'¿Qué haces?',opts:[['Cambiar el agua antes de continuar',1,'Correcto. El agua se cambia siempre que sea necesario y, como mínimo, antes de la zona genital.'],['Seguir con la misma, todavía está templada',0,'Con agua sucia arrastras suciedad a zonas más limpias. Cámbiala.'],['Añadir más jabón para que limpie mejor',0,'El problema es la suciedad del agua, no la cantidad de jabón. Cámbiala.']]},
+  torax:{q:'En el tórax, ¿qué debes secar con especial cuidado?',opts:[['Los pliegues: submamarios y axilares',1,'Correcto. La humedad en los pliegues macera la piel y favorece las infecciones.'],['Solo el esternón',0,'Los pliegues son la zona crítica: la humedad que queda en ellos macera la piel.'],['Nada en especial, la toalla lo seca todo igual',0,'Los pliegues retienen humedad; hay que secarlos con cuidado.']]},
+  abdomen:{q:'¿Qué detalle del abdomen se olvida con frecuencia?',opts:[['El ombligo',1,'Correcto. Acumula suciedad y hay que limpiarlo y secarlo bien.'],['Las ingles',0,'Las ingles se lavan con la zona genital. En el abdomen, lo que se olvida es el ombligo.'],['Las costillas',0,'Lo que suele olvidarse es el ombligo.']]},
+  piernas:{q:'¿En qué posición lavas las piernas?',opts:[['Decúbito supino, lavando y secando bien entre los dedos de los pies',1,'Correcto. Las piernas se lavan boca arriba; la espalda, de lado.'],['Decúbito lateral',0,'El decúbito lateral se usa para la espalda y las nalgas. Las piernas, en decúbito supino.'],['Sentado en el borde de la cama',0,'Un paciente encamado no debe sentarse en el borde para el aseo. Decúbito supino.']]},
+  espalda:{q:'Para lavar la espalda y las nalgas colocas al paciente en…',opts:[['Decúbito lateral',1,'Correcto. Y es el momento de observar la piel de la espalda, el sacro y las nalgas.'],['Decúbito prono (boca abajo)',0,'El prono es incómodo y puede estar contraindicado. Se usa el decúbito lateral.'],['Posición de Fowler',0,'En Fowler no se accede a la espalda ni al sacro. Decúbito lateral.']]},
+  genital_pre:{q:'Antes de la zona genital, ¿qué haces con el agua y la esponja?',opts:[['Cambio el agua y uso una esponja o manopla distinta',1,'Correcto. Es la zona más sucia y se lava la última, con agua limpia y esponja propia.'],['Sigo con la misma agua, ya que es la última zona',0,'Se cambia el agua: así no se arrastran gérmenes y el paciente queda realmente limpio.'],['Solo cambio la toalla',0,'También hay que cambiar el agua y la esponja.']]},
+  genital_h:{q:'¿Cómo realizas la higiene genital en el hombre?',opts:[['Limpio pliegues inguinales y escroto, retraigo el prepucio para limpiar el glande y el surco, vuelvo a colocarlo y termino en el ano',1,'Correcto. Y recuerda volver a colocar el prepucio para evitar una parafimosis.'],['De atrás hacia delante, para acabar en la zona más visible',0,'Siempre de delante hacia atrás: de lo más limpio a lo más sucio.'],['Sin retraer el prepucio, para no molestar',0,'Hay que retraerlo para limpiar el glande y el surco balanoprepucial, y volver a colocarlo.']]},
+  genital_m:{q:'¿Cómo realizas la higiene genital en la mujer?',opts:[['Separo los labios mayores y menores, limpio de delante hacia atrás (del pubis al ano) y seco bien',1,'Correcto. De delante hacia atrás para no arrastrar gérmenes del ano a la uretra.'],['De atrás hacia delante',0,'Nunca: arrastrarías gérmenes del ano hacia la uretra y la vagina. De delante hacia atrás.'],['Solo por fuera, con la esponja del resto del cuerpo',0,'Hay que separar los labios y limpiar la hendidura vulvar, con esponja propia y agua limpia.']]}
+};
+
+const PATIENTS=[
+ {id:'manuel',lvl:'Nivel 1',name:'Don Manuel',age:78,sex:'h',diag:'Operado de fractura de cadera hace 3 días',
+  state:'Consciente y orientado. Mueve bien los brazos; no puede movilizarse solo de cintura para abajo.',devices:'Ninguno',skin:'Íntegra',
+  tags:['Consciente','Colabora','Sin dispositivos'],
+  intro:'Un buen caso para empezar: el paciente colabora y no lleva dispositivos. Practica el orden y las normas básicas.',
+  extraMat:[],
+  events:{
+    cara:{ev:'Imprevisto',situ:'Don Manuel te dice: «La cara me la lavo yo, si me da la manopla».',q:'¿Qué haces?',opts:[['Le doy la manopla y dejo que lo haga él, supervisando',1,'Correcto. Siempre que sea posible hay que fomentar la autonomía del paciente.'],['Le digo que no, que es más rápido si lo hago yo',0,'El aseo es un momento para fomentar la autonomía y la autoestima. Deja que participe.'],['Le dejo la manopla y salgo a por más toallas',0,'Nunca dejes solo al paciente con la cama elevada y sin barandillas durante el aseo.']]},
+    torax:{ev:'Imprevisto',situ:'Don Manuel tirita y dice que tiene frío.',q:'¿Qué haces?',opts:[['Cubro las zonas que no estoy lavando, compruebo la temperatura del agua y de la habitación y que no haya corrientes',1,'Correcto. Se destapa solo la zona que se lava y se seca enseguida.'],['Acelero y termino sin secar para que esté menos tiempo destapado',0,'La piel húmeda enfría más y se macera. Hay que secar bien y cubrir lo que no se lava.'],['Le tapo con una manta y dejo el aseo para otro día',0,'El aseo es diario. Lo que hay que hacer es evitar que pierda calor: cubrir, agua caliente y sin corrientes.']]}
+  },
+  finalQ:[{q:'Don Manuel puede cepillarse los dientes él mismo. ¿Cómo lo organizas?',opts:[['Elevo el cabecero, le acerco el cepillo, el vaso y la batea y le ayudo solo en lo que necesite',1,'Correcto. Fomentas su autonomía y evitas atragantamientos al incorporarlo.'],['Se los cepillo yo tumbado, es más rápido',0,'Tumbado puede atragantarse y le quitas autonomía. Elévalo y deja que lo haga.'],['Le digo que ya se los lavará cuando le den el alta',0,'La higiene bucal es diaria y previene infecciones.']]}],
+  finalExtraOk:[],finalExtraBad:[],
+  model:'10/11/2026, 9:40 h. Aseo completo en cama. El paciente colabora en el lavado de la cara. Piel íntegra, sin enrojecimientos. Refirió frío durante el aseo; se cubrió y se comprobó la temperatura. Se deja acomodado con el timbre a su alcance. Firma: (TCAE).'
+ },
+ {id:'carmen',lvl:'Nivel 2',name:'Doña Carmen',age:69,sex:'m',diag:'Neumonía, en tratamiento intravenoso',
+  state:'Consciente, débil y con poca fuerza en los brazos. Lleva dentadura postiza superior.',devices:'Perfusión intravenosa en el brazo izquierdo',skin:'Íntegra, seca',
+  tags:['Consciente','Perfusión IV','Dentadura postiza'],
+  intro:'Añade dos dificultades: una vía intravenosa y una prótesis dental.',
+  extraMat:['Vaso para la dentadura postiza'],
+  prepQ:{ev:'Al desnudarla',situ:'Doña Carmen lleva la perfusión en el brazo izquierdo.',q:'¿Cómo le quitas la chaqueta del pijama?',opts:[['Primero el brazo libre (derecho) y después el brazo de la vía, pasando el frasco de suero por la manga',1,'Correcto. Para quitar, primero el brazo libre; para poner, primero el brazo de la vía.'],['Primero el brazo de la vía, que es el más delicado',0,'Al revés: al quitar la ropa, primero el brazo libre. Así la manga del brazo de la vía queda holgada.'],['Pinzo el sistema y desconecto el suero para quitarla cómodamente',0,'El TCAE no desconecta las perfusiones. Se pasa el frasco por la manga sin desconectar.']]},
+  events:{
+    brazos:{ev:'Atención',situ:'Vas a lavar el brazo izquierdo, el de la vía.',q:'¿Qué precaución tomas?',opts:[['No mojar el apósito ni tirar del sistema; lavar alrededor con cuidado y sumergir solo la mano',1,'Correcto. Las vías se cuidan: si el apósito se moja o se despega, avisa a la enfermera.'],['Retiro el apósito para lavar bien debajo',0,'El apósito solo lo manipula la enfermera. Si se moja, se avisa.'],['Lo lavo igual que el otro, metiendo todo el antebrazo en la palangana',0,'Mojarías el apósito y podrías mover la vía. Lava alrededor con cuidado.']]}
+  },
+  finalQ:[
+    {q:'Doña Carmen se quita la dentadura postiza. ¿Qué haces con ella?',opts:[['La cepillo en una batea, la aclaro con agua fría o templada y se la coloco; si no la va a usar, la guardo en un vaso con agua',1,'Correcto. Nunca con agua caliente: deforma la prótesis.'],['La meto en agua hirviendo para desinfectarla',0,'El agua caliente deforma la prótesis. Agua fría o templada.'],['La froto con alcohol y la dejo secar en la mesilla',0,'El alcohol la estropea y, seca, se deforma. Se cepilla, se aclara y se guarda en agua.']]},
+    {q:'Vas a ponerle la chaqueta del pijama limpia. ¿Por dónde empiezas?',opts:[['Primero paso el frasco de suero y el brazo de la vía por la manga; después el brazo libre',1,'Correcto. Para poner: primero el suero y el brazo de la vía.'],['Primero el brazo libre',0,'Al poner la ropa es al revés que al quitarla: primero el brazo de la vía.'],['Le dejo la chaqueta abierta sobre los hombros para no tocar la vía',0,'Se puede vestir con seguridad pasando el suero por la manga primero.']]}
+  ],
+  finalExtraOk:['Comprobar que el apósito de la vía está seco y bien fijado'],finalExtraBad:['Desconectar el suero mientras se cambia la ropa de cama'],
+  model:'10/11/2026, 9:40 h. Aseo completo en cama. Paciente consciente, colabora poco por debilidad. Perfusión IV en brazo izquierdo: apósito seco y bien fijado, sin signos de inflamación. Piel íntegra y seca; se aplica loción hidratante. Dentadura postiza limpia y colocada. Firma: (TCAE).'
+ },
+ {id:'antonio',lvl:'Nivel 3',name:'Don Antonio',age:84,sex:'h',diag:'Ictus hace 5 días',
+  state:'Bajo nivel de conciencia: no responde a órdenes ni colabora. No se mueve por sí mismo.',devices:'Sonda vesical permanente',skin:'Enrojecimiento en el sacro que no desaparece al presionar. Uñas de los pies largas.',
+  tags:['Inconsciente','Sonda vesical','Riesgo de UPP'],
+  intro:'El caso más completo: paciente inconsciente, con sonda vesical y una zona de presión que debes saber reconocer.',
+  extraMat:['Torundas y pinzas para la higiene bucal','Vaselina para los labios','Antiséptico para la sonda vesical'],
+  prepQ:{ev:'Organización',situ:'Don Antonio no puede colaborar ni moverse.',q:'¿Cómo organizas el aseo?',opts:[['Pido a un compañero TCAE que me ayude: con dos personas es más seguro y más rápido',1,'Correcto. El aseo del paciente que no colabora lo hacen dos TCAE.'],['Lo hago solo para no molestar a nadie',0,'Movilizar solo a un paciente que no colabora es inseguro para él y para tu espalda.'],['Espero a que esté más despierto',0,'El aseo no se pospone; se organiza con dos profesionales.']]},
+  events:{
+    espalda:{ev:'Observación',situ:'Al colocarlo en decúbito lateral ves el sacro enrojecido. Presionas con el dedo y el enrojecimiento no desaparece.',q:'¿Qué haces?',opts:[['No masajeo esa zona; la seco con suavidad, lo comunico a la enfermera y lo anoto',1,'Correcto. Un eritema que no desaparece a la presión es el primer estadio de una úlcera por presión: nunca se masajea.'],['Doy un masaje enérgico para activar la circulación',0,'El masaje sobre una zona enrojecida que no blanquea daña aún más el tejido. Está contraindicado.'],['Aplico colonia para refrescar y desinfectar',0,'La colonia reseca e irrita. No se aplica sobre piel lesionada.'],['Nada, es normal en pacientes encamados',0,'No es normal: es un signo de alarma que hay que comunicar y registrar.']]},
+    genital:{ev:'Atención',situ:'Don Antonio lleva sonda vesical.',q:'¿Cómo la limpias?',opts:[['Desde el meato urinario hacia la parte distal de la sonda, con agua, jabón y antiséptico, sin traccionar',1,'Correcto. Siempre del meato hacia fuera y sin tirar de la sonda.'],['Desde la bolsa hacia el meato',0,'Arrastrarías gérmenes hacia el meato urinario. Siempre del meato hacia la parte distal.'],['No se toca la sonda durante el aseo',0,'La sonda se limpia en la higiene genital, del meato hacia fuera.']]}
+  },
+  finalQ:[
+    {q:'¿Cómo realizas la higiene de la boca de un paciente inconsciente?',opts:[['Cabeza ladeada, torunda con antiséptico bien escurrida, una torunda para cada zona, y vaselina en los labios',1,'Correcto. Escurrir la torunda evita que aspire líquido.'],['Con cepillo y pasta, enjuagando con un vaso de agua',0,'Un paciente inconsciente no puede enjuagarse: aspiraría el líquido.'],['No se hace mientras esté inconsciente',0,'Se hace a diario, con torundas escurridas y la cabeza ladeada.']]},
+    {q:'Las uñas de los pies están largas. ¿Cómo las cortas?',opts:[['Rectas, con tijeras de punta roma, y las limo',1,'Correcto. Pies rectas; manos en redondo.'],['En redondo, siguiendo la forma del dedo',0,'En los pies el corte es recto: evita que la uña se encarne.'],['No se cortan a un paciente inconsciente',0,'Forma parte del aseo; si hay dudas (diabetes, uñas muy engrosadas) se consulta con enfermería.']]}
+  ],
+  finalExtraOk:['Valorar con enfermería un colchón antiescaras','Comprobar que la sonda no está acodada y la bolsa queda por debajo del nivel de la vejiga'],finalExtraBad:['Masajear con energía el sacro enrojecido para activar la circulación'],
+  model:'10/11/2026, 9:40 h. Aseo completo en cama entre dos TCAE. Paciente con bajo nivel de conciencia, no colabora. Eritema en región sacra de unos 4 cm que no desaparece a la presión; no se masajea. Sonda vesical permeable, higiene del meato realizada. Higiene bucal con torundas. Uñas de los pies cortadas en recto. Se comunica a la enfermera responsable. Firma: (TCAE).'
+ }
+];
+const FINAL_OK=['Aplicar loción hidratante y dar un masaje suave en la espalda y en las zonas de presión sanas','Cambiar la ropa de cama inferior según el protocolo de cama ocupada','Vestir al paciente','Colaborar en la higiene de la boca y el pelo','Revisar las uñas: manos en redondo, pies rectas','Acomodar al paciente, subir las barandillas y dejar el timbre a su alcance','Recoger el material y la ropa sucia','Quitarse los guantes y lavarse las manos','Anotar las incidencias y lo observado'];
+const FINAL_BAD=[
+  ['Dejar la cama elevada a la altura de las caderas','La cama se baja al terminar: elevada aumenta el riesgo de caída.'],
+  ['Aplicar colonia sobre la piel enrojecida o lesionada','La colonia reseca e irrita; nunca sobre piel lesionada.'],
+  ['Dejar la ropa sucia en el suelo hasta terminar','La ropa sucia va directamente a la bolsa, sin tocar el suelo ni sacudirla.'],
+  ['Cortar las uñas de los pies en redondo','Las de los pies se cortan rectas para evitar que se encarnen.'],
+  ['Dejar las barandillas bajadas para que respire mejor','Las barandillas se suben: las bajadas no mejoran la respiración y sí el riesgo de caída.']
+];
+const REG_CHECKS=['Fecha y hora del aseo','Lo que has observado, descrito de forma objetiva (sin diagnosticar)','Lo que refiere el paciente, si puede expresarse','A quién lo comunicas (enfermera responsable)','Tu identificación o firma'];
+
+/* ---------- utilidades ---------- */
+const $=s=>document.querySelector(s);
+const app=$('#app');
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let S={screen:'intro',name:'',pid:null,points:{},max:{},errors:[],stage:0,data:{},completed:{},att:[]};
+let editingName=false;
+try{const saved=JSON.parse(localStorage.getItem('aseo-sim')||'null');if(saved&&saved.name!==undefined){S.name=saved.name;S.completed=saved.completed||{};S.att=Array.isArray(saved.att)?saved.att:[]}}catch(e){}
+function persist(){try{localStorage.setItem('aseo-sim',JSON.stringify({name:S.name,completed:S.completed,att:S.att}))}catch(e){}}
+/* códigos de entrega */
+const KEY='TCB-aseo-cama-2026';
+function fnv(t){let h=0x811c9dc5;for(let i=0;i<t.length;i++){h^=t.charCodeAt(i);h=Math.imul(h,0x01000193)>>>0}return h.toString(36)}
+function encCode(obj){const b=new TextEncoder().encode(JSON.stringify(obj));let bin='';b.forEach((x,i)=>{bin+=String.fromCharCode(x^(KEY.charCodeAt(i%KEY.length)&255))});const p=btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');return 'ASEO1.'+p+'.'+fnv(p+KEY)}
+const normN=t=>String(t||'').trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s+/g,' ');
+const cut=(t,n)=>{t=String(t||'');return t.length>n?t.slice(0,n-1)+'…':t};
+const myAtt=()=>S.att.filter(a=>normN(a.n)===normN(S.name));
+const slim=(a,ne,nr)=>({p:a.p,s:a.s,m:a.m,b:a.b,t:a.t,e:a.e.slice(0,ne),r:cut(a.r,nr)});
+function allCode(){const as=myAtt();return as.length?encCode({n:S.name,as:as.map(a=>slim(a,4,160))}):''}
+async function copyText(text,ta){try{await navigator.clipboard.writeText(text);return true}catch(e){if(ta){ta.focus();ta.select()}return false}}
+function codeBox(title,intro,code,id){return `<div class="fb ok" style="display:block"><b>${title}</b> ${intro}<textarea class="code" id="${id}" readonly aria-label="Código de entrega">${esc(code)}</textarea><div class="actions" style="margin-top:8px;justify-content:flex-start"><button class="btn small" type="button" id="${id}-btn">Copiar código</button></div></div>`}
+function wireCopy(id,code){const b=$('#'+id+'-btn');if(b)b.addEventListener('click',async()=>{const ok=await copyText(code,$('#'+id));b.textContent=ok?'Código copiado':'Selecciona el texto y cópialo'})}
+const P=()=>PATIENTS.find(p=>p.id===S.pid);
+function add(block,pts,max){S.points[block]=(S.points[block]||0)+pts;S.max[block]=(S.max[block]||0)+max;updatePill()}
+function err(block,title,text){S.errors.push({block,title,text})}
+function total(){const p=Object.values(S.points).reduce((a,b)=>a+b,0),m=Object.values(S.max).reduce((a,b)=>a+b,0);return{p,m,pct:m?Math.round(100*p/m):0}}
+function updatePill(){const t=total();const el=$('#scorepill');el.hidden=S.screen==='intro';el.textContent=`${t.p} / ${t.m} pts`}
+const STAGES=['Material','Preparación','Lavado','Finalización','Registro'];
+function frame(stageIdx,inner){
+  const prog=STAGES.map((s,i)=>`<div class="${i<stageIdx?'done':i===stageIdx?'cur':''}" title="${s}"></div>`).join('');
+  return `<div class="progress">${prog}</div><div class="steplabel">Paso ${stageIdx+1} de 5 · ${STAGES[stageIdx]} · ${P().name}</div>${inner}`;
+}
+function render(html){app.innerHTML=html;window.scrollTo({top:0,behavior:'instant'});updatePill()}
+function toast(msg){let t=$('.toast');if(!t){t=document.createElement('div');t.className='toast';document.body.appendChild(t)}t.textContent=msg;clearTimeout(t._t);t._t=setTimeout(()=>t.remove(),2600)}
+
+/* pregunta de opción única; onDone(ok) */
+function question(container,q,block,onDone){
+  const opts=shuffle(q.opts.map((o,i)=>({t:o[0],ok:!!o[1],fb:o[2],i})));
+  const box=document.createElement('div');box.className='q';
+  box.innerHTML=`${q.ev?`<div class="ev">${esc(q.ev)}</div>`:''}${q.situ?`<p class="situ">${esc(q.situ)}</p>`:''}<h3>${esc(q.q)}</h3><div class="opts">${opts.map((o,k)=>`<button class="opt" type="button" data-k="${k}"><span class="k">${'abcd'[k]})</span><span>${esc(o.t)}</span></button>`).join('')}</div>`;
+  container.appendChild(box);
+  box.querySelectorAll('.opt').forEach(b=>b.addEventListener('click',()=>{
+    const o=opts[+b.dataset.k];
+    box.querySelectorAll('.opt').forEach((bb,k)=>{bb.disabled=true;if(opts[k].ok)bb.classList.add('ok')});
+    if(!o.ok)b.classList.add('bad');
+    add(block,o.ok?10:0,10);
+    const right=opts.find(x=>x.ok);
+    if(!o.ok)err(block,q.q,o.fb+' Respuesta correcta: '+right.t+'.');
+    const fb=document.createElement('div');fb.className='fb '+(o.ok?'ok':'bad');fb.innerHTML=`<span class="ico">${o.ok?'✓':'✗'}</span><span>${esc(o.fb)}</span>`;box.appendChild(fb);
+    fb.scrollIntoView({block:'nearest',behavior:'smooth'});
+    onDone(o.ok,box);
+  }));
+  box.scrollIntoView({block:'nearest',behavior:'smooth'});
+  return box;
+}
+/* encadena varias preguntas y llama a cb al final */
+function askSeq(container,qs,block,cb){let i=0;const next=()=>{if(i>=qs.length){cb();return}const q=qs[i++];question(container,q,block,()=>{const b=document.createElement('div');b.className='actions';b.innerHTML='<button class="btn" type="button">Continuar</button>';container.appendChild(b);b.querySelector('button').addEventListener('click',()=>{b.remove();next()})})};next()}
+
+/* ---------- SVG ---------- */
+function avatarSVG(p){
+  const hair=p.id==='antonio'?'#D9D4CF':p.id==='carmen'?'#8A6A5A':'#9A9A9A';
+  return `<svg viewBox="0 0 80 80" aria-hidden="true"><circle cx="40" cy="42" r="30" fill="var(--sheet)"/><ellipse cx="40" cy="36" rx="15" ry="17" fill="var(--skin)"/><path d="M25 32 Q40 ${p.sex==='m'?8:14} 55 32 L55 ${p.sex==='m'?44:30} Q40 ${p.sex==='m'?26:20} 25 ${p.sex==='m'?44:30}Z" fill="${hair}"/><path d="M18 72 Q40 52 62 72Z" fill="#8FB7CF"/>${p.id==='antonio'?'<path d="M31 40 l6 0 M43 40 l6 0" stroke="#5a4b43" stroke-width="2" stroke-linecap="round"/>':'<circle cx="34" cy="38" r="1.8" fill="#4a3b33"/><circle cx="46" cy="38" r="1.8" fill="#4a3b33"/>'}</svg>`;
+}
+function heroSVG(){
+  return `<svg viewBox="0 0 320 200" aria-label="Paciente encamado" role="img">
+  <rect x="20" y="60" width="280" height="110" rx="14" fill="var(--sheet)"/>
+  <rect x="20" y="150" width="280" height="22" rx="8" fill="#A9BFCF"/>
+  <rect x="30" y="40" width="26" height="130" rx="8" fill="#B9C9D4"/>
+  <rect x="48" y="84" width="64" height="30" rx="12" fill="#fff" opacity=".9"/>
+  <circle cx="86" cy="86" r="20" fill="var(--skin)"/>
+  <path d="M66 80 Q86 58 106 80 L106 92 Q86 76 66 92Z" fill="#8a8a8a"/>
+  <path d="M106 78 Q140 70 160 76 L300 92 L300 150 L106 150Z" fill="#DCE9F1"/>
+  <path d="M104 100 Q130 94 150 100 L298 112 L298 148 L104 148Z" fill="#CFE0EA"/>
+  <circle cx="250" cy="42" r="14" fill="var(--surface)" stroke="var(--line)"/><rect x="246" y="56" width="8" height="40" fill="#7B8EA0"/><rect x="232" y="30" width="36" height="6" rx="3" fill="#7B8EA0"/>
+  <rect x="150" y="120" width="60" height="18" rx="6" fill="#F4E0A1"/><rect x="156" y="112" width="48" height="10" rx="4" fill="#E9C86C"/>
+  <path d="M180 60 q10 -14 20 0 q10 14 20 0" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round"/>
+  </svg>`;
+}
+/* mapa corporal (vista supina) */
+function bodySVG(){
+  const z=(id,shape,label,lx,ly)=>`<g class="zone" data-zone="${id}" tabindex="0" role="button" aria-label="${label}">${shape}<text x="${lx}" y="${ly}" text-anchor="middle">${label}</text></g>`;
+  return `<svg viewBox="0 0 360 520" role="group" aria-label="Mapa corporal">
+  <rect x="20" y="10" width="320" height="500" rx="26" fill="var(--sheet)"/>
+  <rect x="40" y="26" width="280" height="56" rx="14" fill="var(--surface)" opacity=".85"/>
+  <!-- cabeza -->
+  <ellipse cx="180" cy="62" rx="34" ry="40" fill="var(--skin)"/>
+  ${z('ojos','<rect class="fill" x="150" y="46" width="60" height="18" rx="9" fill="var(--skin-2)"/>','Ojos',180,59)}
+  ${z('cara','<path class="fill" d="M150 66 Q180 112 210 66 Z" fill="var(--skin-2)"/><ellipse class="fill" cx="144" cy="66" rx="7" ry="10" fill="var(--skin-2)"/><ellipse class="fill" cx="216" cy="66" rx="7" ry="10" fill="var(--skin-2)"/>','Cara y orejas',180,88)}
+  ${z('cuello','<path class="fill" d="M120 128 Q180 98 240 128 L240 146 L120 146Z" fill="var(--skin)"/>','Cuello y hombros',180,140)}
+  <!-- tronco -->
+  ${z('torax','<path class="fill" d="M120 146 L240 146 L236 226 L124 226Z" fill="var(--skin)"/>','Tórax',180,190)}
+  ${z('abdomen','<path class="fill" d="M124 226 L236 226 L232 300 L128 300Z" fill="var(--skin)"/>','Abdomen',180,266)}
+  ${z('genital','<path class="fill" d="M128 300 L232 300 L226 336 L134 336Z" fill="var(--skin-2)"/>','Zona genital',180,322)}
+  <!-- brazos -->
+  ${z('brazos','<path class="fill" d="M120 150 L96 150 L70 290 L96 300 L122 180Z" fill="var(--skin)"/><path class="fill" d="M240 150 L264 150 L290 290 L264 300 L238 180Z" fill="var(--skin)"/>','Brazos, axilas y manos',62,318)}
+  <!-- piernas -->
+  ${z('piernas','<path class="fill" d="M134 336 L178 336 L172 490 L136 490Z" fill="var(--skin)"/><path class="fill" d="M182 336 L226 336 L224 490 L188 490Z" fill="var(--skin)"/>','Piernas y pies',180,440)}
+  <!-- espalda (botón lateral) -->
+  ${z('espalda','<rect class="fill" x="258" y="356" width="80" height="60" rx="12" fill="var(--surface)"/><path d="M278 372 q20 -10 40 0" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round"/><path d="M312 366 l8 6 l-8 6" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>','Espalda y nalgas',298,402)}
+  </svg>`;
+}
+
+/* ---------- pantallas ---------- */
+function intro(){
+  S.screen='intro';
+  render(`
+  <section class="card"><div class="hero"><div>
+    <h1>Simulador del aseo en cama</h1>
+    <p>Elige un paciente y realiza su aseo completo: prepara el material, sigue el orden correcto, resuelve los imprevistos y registra lo que observes. Al terminar recibirás tu puntuación, los errores explicados y un código: cópialo y entrégalo en la tarea del campus.</p>
+  </div><div class="art">${heroSVG()}</div></div>
+  ${idBlock()}
+  <div class="patients">${PATIENTS.map(p=>`<button class="pcard" type="button" data-p="${p.id}"><span class="lvl">${p.lvl}</span><h3>${p.name}, ${p.age} años</h3><p>${esc(p.diag)}.</p><p>${esc(p.intro)}</p><div class="tags">${p.tags.map(t=>`<span class="tag">${t}</span>`).join('')}${S.completed[p.id]!==undefined?`<span class="tag done">Hecho: ${S.completed[p.id]}/10</span>`:''}</div></button>`).join('')}</div>
+  <p class="hint">Consulta el protocolo cuando lo necesites con el botón de arriba. La puntuación cuenta solo tu primera respuesta.</p>
+  </section>`);
+  wireId();
+  app.querySelectorAll('.pcard').forEach(b=>b.addEventListener('click',()=>{if(!named()){const f=$('#idForm');f.classList.add('need');$('#idHint').textContent='Antes de empezar, escribe tu nombre y apellidos y pulsa Guardar.';f.scrollIntoView({block:'center'});$('#nm').focus({preventScroll:true});return}start(b.dataset.p)}));
+}
+function named(){return S.name&&S.name.trim().split(/\s+/).length>=2&&!editingName}
+function idBlock(){const n=myAtt().length;
+  return named()?`<div class="idcard"><div class="who"><span class="tag">Alumno/a</span><b>${esc(S.name)}</b><button class="btn small secondary" type="button" id="idEdit">Cambiar</button>${n?`<button class="btn small secondary" type="button" id="myCode">Mi código de entrega (${n} intento${n===1?'':'s'})</button>`:''}</div><div id="codeArea" hidden style="margin-top:12px"></div></div>`
+  :`<div class="idcard" id="idForm"><form><div class="field"><label for="nm">Nombre y apellidos</label><input id="nm" type="text" value="${esc(S.name)}" placeholder="Nombre y apellidos" autocomplete="name" maxlength="80"></div><button class="btn" type="submit">Guardar</button><p class="hint" id="idHint" style="flex-basis:100%;margin:0">Escribe tu nombre y apellidos antes de empezar: con ellos se genera tu código de entrega.</p></form></div>`}
+function wireId(){const form=app.querySelector('#idForm form');
+  if(form)form.addEventListener('submit',e=>{e.preventDefault();const v=$('#nm').value.trim().replace(/\s+/g,' ');if(v.split(' ').length<2){$('#idHint').textContent='Escribe tu nombre y al menos un apellido.';$('#idForm').classList.add('need');$('#nm').focus();return}S.name=cut(v,80);editingName=false;persist();intro()});
+  if($('#idEdit'))$('#idEdit').addEventListener('click',()=>{editingName=true;intro();$('#nm').focus()});
+  if($('#myCode'))$('#myCode').addEventListener('click',()=>{const code=allCode();const a=$('#codeArea');a.hidden=false;a.innerHTML=codeBox('Tu código de entrega.','Incluye todos los intentos hechos en este dispositivo. Cópialo y pégalo en la tarea del campus.',code,'allTa');wireCopy('allTa',code)});}
+function start(pid){S={...S,screen:'brief',pid,points:{},max:{},errors:[],data:{}};const p=P();
+  render(`<section class="card"><div class="brief"><div class="avatar">${avatarSVG(p)}</div><div>
+  <div class="steplabel">${p.lvl}</div><h2>${p.name}, ${p.age} años</h2>
+  <dl><dt>Diagnóstico</dt><dd>${esc(p.diag)}</dd><dt>Estado</dt><dd>${esc(p.state)}</dd><dt>Dispositivos</dt><dd>${esc(p.devices)}</dd><dt>Piel</dt><dd>${esc(p.skin)}</dd></dl>
+  <div class="note" style="margin-top:14px">Son las 9:30 de la mañana. Te toca realizar el aseo en cama de ${p.name}. <b>Lee bien la ficha</b>: la necesitarás para adaptar el procedimiento.</div>
+  </div></div><div class="actions"><button class="btn secondary left" type="button" id="back">Elegir otro paciente</button><button class="btn" type="button" id="go">Empezar el aseo</button></div></section>`);
+  $('#back').addEventListener('click',intro);$('#go').addEventListener('click',stageMaterial);
+}
+/* 1 material */
+function stageMaterial(){S.screen='mat';const p=P();
+  const items=shuffle([...MAT_OK.map(t=>({t,ok:1})),...p.extraMat.map(t=>({t,ok:1,extra:1})),...MAT_BAD.map(([t,why])=>({t,ok:0,why}))]);
+  S.data.mat=items;const sel=new Set();
+  render(`<section class="card">${frame(0,`<h2>Prepara el material</h2><p class="lead">Marca todo lo que necesitas para el aseo de ${p.name}. Hay elementos que no deben usarse y otros que solo este paciente necesita.</p>
+  <div class="chips">${items.map((it,i)=>`<button class="chip" type="button" data-i="${i}" aria-pressed="false"><span class="box"></span><span>${esc(it.t)}</span></button>`).join('')}</div>
+  <div class="actions"><span class="hint left" id="cnt">0 seleccionados</span><button class="btn" type="button" id="chk">Comprobar</button></div>`)}</section>`);
+  app.querySelectorAll('.chip').forEach(b=>b.addEventListener('click',()=>{const i=+b.dataset.i;if(sel.has(i))sel.delete(i);else sel.add(i);b.setAttribute('aria-pressed',sel.has(i));$('#cnt').textContent=sel.size+' seleccionados'}));
+  $('#chk').addEventListener('click',()=>{
+    let good=0,bad=0,miss=0;const okN=items.filter(x=>x.ok).length;
+    app.querySelectorAll('.chip').forEach(b=>{const i=+b.dataset.i,it=items[i];b.disabled=true;b.setAttribute('aria-pressed','false');
+      if(sel.has(i)&&it.ok){good++;b.classList.add('ok')}else if(sel.has(i)&&!it.ok){bad++;b.classList.add('bad');err('Material','Has elegido: '+it.t,it.why)}else if(!sel.has(i)&&it.ok){miss++;b.classList.add('miss')}});
+    const missing=items.filter((it,i)=>it.ok&&!sel.has(i));
+    if(missing.length)err('Material','Material que faltaba',missing.map(m=>m.t).join('; ')+'.');
+    const pts=Math.max(0,Math.round(20*(good-bad)/okN));add('Material',pts,20);
+    const q=$('#chk').parentElement;q.innerHTML=`<div class="legend left"><span class="l-ok">Correcto</span><span class="l-bad">No debe usarse</span><span class="l-miss">Te faltaba</span></div><button class="btn" type="button" id="next">Continuar</button>`;
+    const n=document.createElement('div');n.className='note';n.style.marginTop='14px';n.innerHTML=`Acertaste <b>${good} de ${okN}</b> elementos necesarios${bad?` y marcaste <b>${bad}</b> que no debe${bad>1?'n':''} usarse`:''}${miss?`; te faltaba${miss>1?'n':''} <b>${miss}</b>`:''}.${p.extraMat.length?` Recuerda el material específico de este paciente: ${p.extraMat.join(', ').toLowerCase()}.`:''}`;q.before(n);
+    $('#next').addEventListener('click',stagePrep);
+  });
+}
+/* 2 preparación */
+function stagePrep(){S.screen='prep';const p=P();
+  const items=shuffle(PREP_ORDER.map((t,i)=>({t,i})));let picked=[];
+  render(`<section class="card">${frame(1,`<h2>Antes de empezar</h2><p class="lead">Ya tienes el material y el agua. Toca los pasos <b>en el orden en que los harías</b>.</p>
+  <div class="order">${items.map((it,k)=>`<button class="oitem" type="button" data-k="${k}" data-picked="0"><span class="n"></span><span>${esc(it.t)}</span></button>`).join('')}</div>
+  <div class="actions"><button class="btn secondary left" type="button" id="reset">Deshacer</button><button class="btn" type="button" id="chk" disabled>Comprobar orden</button></div><div id="qs"></div>`)}</section>`);
+  const btns=[...app.querySelectorAll('.oitem')];
+  btns.forEach(b=>b.addEventListener('click',()=>{const k=+b.dataset.k;if(picked.includes(k))return;picked.push(k);b.dataset.picked='1';b.querySelector('.n').textContent=picked.length;$('#chk').disabled=picked.length<items.length}));
+  $('#reset').addEventListener('click',()=>{picked=[];btns.forEach(b=>{b.dataset.picked='0';b.querySelector('.n').textContent=''});$('#chk').disabled=true});
+  $('#chk').addEventListener('click',()=>{let ok=0;picked.forEach((k,pos)=>{const b=btns[k];b.disabled=true;if(items[k].i===pos){ok++;b.classList.add('ok')}else{b.classList.add('bad');b.insertAdjacentHTML('beforeend',`<span class="fix">va en ${items[k].i+1}.º</span>`)}});
+    $('#reset').remove();add('Preparación',Math.round(10*ok/items.length),10);
+    if(ok<items.length)err('Preparación','Orden de la preparación',`Acertaste ${ok} de ${items.length}. Orden correcto: `+PREP_ORDER.map((t,i)=>`${i+1}) ${t}`).join(' '));
+    $('#chk').remove();
+    const qs=[...Q_TEMP];if(p.prepQ)qs.push(p.prepQ);
+    askSeq($('#qs'),qs,'Preparación',()=>{const a=document.createElement('div');a.className='actions';a.innerHTML='<button class="btn" type="button">Empezar el lavado</button>';$('#qs').appendChild(a);a.querySelector('button').addEventListener('click',stageWash)});
+  });
+}
+/* 3 lavado */
+function stageWash(){S.screen='wash';const p=P();let idx=0,orderPts=0,busy=false;
+  render(`<section class="card">${frame(2,`<h2>El lavado, zona por zona</h2><p class="lead">Toca en el mapa la zona que lavarías ahora. Recuerda la regla: de lo más limpio a lo más sucio, y de arriba abajo.</p>
+  <div class="wash"><div><div class="bodywrap">${bodySVG()}</div><p class="hint">Para la espalda y las nalgas usa el botón lateral: hay que girar al paciente.</p></div>
+  <div><div class="zonelist">${ZONES.map((z,i)=>`<div data-z="${z.id}"><span class="n">${i+1}</span><span>${z.n}</span></div>`).join('')}</div><div id="qs"></div></div></div>`)}</section>`);
+  const zones=[...app.querySelectorAll('.zone')];
+  const finish=()=>{add('Lavado',orderPts,ZONES.length*2);const a=document.createElement('div');a.className='actions';a.innerHTML='<button class="btn" type="button">Terminar el lavado</button>';$('#qs').appendChild(a);a.querySelector('button').addEventListener('click',stageFinal);a.scrollIntoView({block:'nearest',behavior:'smooth'})};
+  const onZone=el=>{if(busy)return;const id=el.dataset.zone;const expected=ZONES[idx];
+    if(id!==expected.id){el.classList.add('bad');setTimeout(()=>el.classList.remove('bad'),700);const zi=ZONES.findIndex(z=>z.id===id);
+      if(zi<idx)toast('Esa zona ya está lavada');else{toast(`Todavía no. Ahora toca: ${expected.n.toLowerCase()}`);if(!S.data['bad_'+idx]){S.data['bad_'+idx]=1;err('Lavado',`Orden del lavado: tocaste «${ZONES[zi].n}» antes que «${expected.n}»`,'De lo más limpio a lo más sucio: ojos, cara, cuello, brazos, tórax, abdomen, piernas, espalda y, por último, la zona genital.')}}
+      return}
+    orderPts+=S.data['bad_'+idx]?1:2;el.classList.add('done');el.setAttribute('aria-disabled','true');app.querySelector(`.zonelist [data-z="${id}"]`).classList.add('done');
+    const qs=[];
+    if(id==='genital'){qs.push(ZQ.genital_pre,p.sex==='h'?ZQ.genital_h:ZQ.genital_m)}else if(ZQ[id])qs.push(ZQ[id]);
+    if(p.events[id])qs.push(p.events[id]);
+    idx++;busy=true;
+    const done=()=>{busy=false;$('#qs').innerHTML='';if(idx>=ZONES.length)finish()};
+    if(qs.length)askSeq($('#qs'),qs,'Lavado',done);else done();
+  };
+  zones.forEach(z=>{z.addEventListener('click',()=>onZone(z));z.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();onZone(z)}})});
+  if(p.events.start){busy=true;askSeq($('#qs'),[p.events.start],'Lavado',()=>{busy=false;$('#qs').innerHTML=''})}
+}
+/* 4 finalización */
+function stageFinal(){S.screen='final';const p=P();
+  const items=shuffle([...FINAL_OK.map(t=>({t,ok:1})),...p.finalExtraOk.map(t=>({t,ok:1})),...FINAL_BAD.map(([t,why])=>({t,ok:0,why})),...p.finalExtraBad.map(t=>({t,ok:0,why:'Está contraindicado en este paciente.'}))]);const sel=new Set();
+  render(`<section class="card">${frame(3,`<h2>Para terminar</h2><p class="lead">Marca todo lo que harías al finalizar el aseo de ${p.name}. Después resolverás un par de situaciones concretas.</p>
+  <div class="chips">${items.map((it,i)=>`<button class="chip" type="button" data-i="${i}" aria-pressed="false"><span class="box"></span><span>${esc(it.t)}</span></button>`).join('')}</div>
+  <div class="actions"><button class="btn" type="button" id="chk">Comprobar</button></div><div id="qs"></div>`)}</section>`);
+  app.querySelectorAll('.chip').forEach(b=>b.addEventListener('click',()=>{const i=+b.dataset.i;if(sel.has(i))sel.delete(i);else sel.add(i);b.setAttribute('aria-pressed',sel.has(i))}));
+  $('#chk').addEventListener('click',()=>{let good=0,bad=0;const okN=items.filter(x=>x.ok).length;
+    app.querySelectorAll('.chip').forEach(b=>{const i=+b.dataset.i,it=items[i];b.disabled=true;b.setAttribute('aria-pressed','false');if(sel.has(i)&&it.ok){good++;b.classList.add('ok')}else if(sel.has(i)&&!it.ok){bad++;b.classList.add('bad');err('Finalización','Has marcado: '+it.t,it.why)}else if(!sel.has(i)&&it.ok)b.classList.add('miss')});
+    const missing=items.filter((it,i)=>it.ok&&!sel.has(i));if(missing.length)err('Finalización','Pasos que faltaban al terminar',missing.map(m=>m.t).join('; ')+'.');
+    add('Finalización',Math.max(0,Math.round(20*(good-bad)/okN)),20);
+    const a=$('#chk').parentElement;a.innerHTML='<div class="legend left"><span class="l-ok">Correcto</span><span class="l-bad">No se hace</span><span class="l-miss">Te faltaba</span></div>';
+    askSeq($('#qs'),p.finalQ,'Finalización',()=>{const b=document.createElement('div');b.className='actions';b.innerHTML='<button class="btn" type="button">Ir al registro</button>';$('#qs').appendChild(b);b.querySelector('button').addEventListener('click',stageReg)});
+  });
+}
+/* 5 registro */
+function stageReg(){S.screen='reg';const p=P();
+  render(`<section class="card">${frame(4,`<h2>Registra lo observado</h2><p class="lead">Has terminado el aseo de ${p.name}. Redacta la anotación que harías en la hoja de observaciones de enfermería.</p>
+  <textarea id="reg" aria-label="Registro de enfermería" placeholder="Fecha y hora. Qué has hecho, qué has observado, qué refiere el paciente y a quién lo comunicas…"></textarea>
+  <div class="actions"><button class="btn" type="button" id="chk">He terminado</button></div><div id="self"></div>`)}</section>`);
+  $('#chk').addEventListener('click',()=>{const txt=$('#reg').value.trim();if(txt.length<20){toast('Escribe el registro antes de continuar');return}$('#reg').readOnly=true;$('#chk').remove();
+    $('#self').innerHTML=`<div class="model"><b>Modelo de registro para ${p.name}:</b><br>${esc(p.model)}</div><h3 style="margin-top:16px;font-size:17px">Compara con tu texto y marca lo que has incluido</h3><div class="checks">${REG_CHECKS.map((c,i)=>`<label><input type="checkbox" id="rc${i}"><span>${c}</span></label>`).join('')}</div><div class="actions"><button class="btn" type="button" id="fin">Ver mi resultado</button></div>`;
+    $('#fin').addEventListener('click',()=>{const n=[...app.querySelectorAll('.checks input')].filter(c=>c.checked).length;add('Registro',n*4,20);const miss=REG_CHECKS.filter((c,i)=>!$('#rc'+i).checked);if(miss.length)err('Registro','Elementos que faltaban en tu registro',miss.join('; ')+'.');S.data.reg=txt;results()});
+  });
+}
+/* resultados */
+function results(){S.screen='res';const p=P();const t=total();const nota=Math.round(t.pct/10*10)/10;S.completed[p.id]=nota;
+  const blocks=['Material','Preparación','Lavado','Finalización','Registro'];
+  const att={n:S.name,p:p.id,s:t.p,m:t.m,b:blocks.map(b=>[S.points[b]||0,S.max[b]||0]),t:new Date().toISOString().slice(0,16),e:S.errors.map(e=>cut(e.block+': '+e.title,70)),r:cut(S.data.reg||'',400)};
+  S.att.push(att);S.att=S.att.slice(-40);persist();
+  const code=encCode({n:S.name,a:slim(att,8,400)});
+  render(`<section class="card"><div class="steplabel">Resultado · ${p.name}</div><h2>${t.pct>=80?'Muy buen aseo':t.pct>=60?'Buen trabajo, con cosas que repasar':'Repasa el protocolo y vuelve a intentarlo'}</h2>
+  <div class="big" style="margin-top:14px"><div class="ring" style="--p:${t.pct}"><div>${nota}<small>/10</small></div></div><div style="flex:1;min-width:220px"><p style="margin:0 0 6px">${esc(S.name)}, has conseguido <b>${t.p} de ${t.m} puntos</b>.</p><p style="margin:0;color:var(--muted)">${S.errors.length?`Has cometido ${S.errors.length} error${S.errors.length>1?'es':''}. Revísalos abajo: cada uno lleva la explicación.`:'Sin errores. Aseo impecable.'}</p></div></div>
+  <div class="bars">${blocks.map(b=>`<span>${b}</span><div class="b"><i style="width:${S.max[b]?100*(S.points[b]||0)/S.max[b]:0}%"></i></div><span class="v">${S.points[b]||0}/${S.max[b]||0}</span>`).join('')}</div>
+  <div style="margin-top:18px">${codeBox('Intento registrado.','Este es el código de este paciente. Si al final entregas «Mi código de entrega» (en la portada), no hace falta que entregues este.',code,'codeTa')}</div>
+  ${S.errors.length?`<h3 style="margin-top:20px;font-size:18px">Qué debes repasar</h3><div class="review">${S.errors.map(e=>`<div><b>${esc(e.block)} · ${esc(e.title)}</b>${esc(e.text)}</div>`).join('')}</div>`:''}
+  <div class="actions"><button class="btn secondary" type="button" id="again">Repetir este paciente</button><button class="btn" type="button" id="home">Otro paciente</button></div></section>`);
+  wireCopy('codeTa',code);
+  $('#again').addEventListener('click',()=>start(p.id));$('#home').addEventListener('click',intro);
+}
+
+/* ---------- drawer ---------- */
+const drawer=$('#drawer');
+$('#btnproto').addEventListener('click',()=>{drawer.classList.add('open');drawer.setAttribute('aria-hidden','false');drawer.querySelector('.close').focus()});
+drawer.querySelectorAll('[data-close]').forEach(el=>el.addEventListener('click',()=>{drawer.classList.remove('open');drawer.setAttribute('aria-hidden','true');$('#btnproto').focus()}));
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&drawer.classList.contains('open'))drawer.querySelector('.close').click()});
+
+/* ---------- arranque ---------- */
+intro();
+</script>
+</body>
+</html>
